@@ -3,24 +3,38 @@ from tkinter import scrolledtext
 import subprocess
 import json
 import os
-import keyboard  # Import the keyboard library
-import threading  # For running the hotkey listener in a separate thread
+import keyboard
+import threading
+import sys
 
-# Load shortcuts from JSON file
+# Load shortcuts from JSON files
 def load_shortcuts():
+    shortcuts = {}
     try:
-        with open(r'F:\\Main_PROJECTS\\Custom_terminal\\shortcuts.json') as f:  # Update the path accordingly
-            shortcuts = json.load(f)
-            log_output(f"DEBUG: Successfully loaded shortcuts: {shortcuts}")
-            return shortcuts
+        with open(r'F:\\Main_PROJECTS\\Custom_terminal\\shortcuts.json') as f:
+            shortcuts["programs"] = json.load(f)
+            log_output(f"DEBUG: Successfully loaded program shortcuts: {shortcuts['programs']}")
     except FileNotFoundError:
         log_output("DEBUG: shortcuts.json not found.")
-        return {}
+        shortcuts["programs"] = {}
     except json.JSONDecodeError as e:
-        log_output(f"DEBUG: JSON decode error: {e}")
-        return {}
+        log_output(f"DEBUG: JSON decode error in shortcuts.json: {e}")
+        shortcuts["programs"] = {}
 
-# Execute a shortcut or command
+    try:
+        with open(r'F:\\Main_PROJECTS\\Custom_terminal\\folder_shortcuts!@@@@!!!.json') as f:
+            shortcuts["folders"] = json.load(f)
+            log_output(f"DEBUG: Successfully loaded folder shortcuts: {shortcuts['folders']}")
+    except FileNotFoundError:
+        log_output("DEBUG: shortcuts_folder.json not found.")
+        shortcuts["folders"] = {}
+    except json.JSONDecodeError as e:
+        log_output(f"DEBUG: JSON decode error in shortcuts_folder.json: {e}")
+        shortcuts["folders"] = {}
+
+    return shortcuts
+
+# Execute a shortcut or command with two arguments (type and path)
 def execute_command():
     command = entry.get().strip()
     if not command:
@@ -33,36 +47,70 @@ def execute_command():
         return
     if command.lower() == 'full':
         toggle_window_size()
-    
+
+    # Split the command into the type and the path
+    parts = command.split(' ', 1)
+    if len(parts) < 2:
+        log_output("Error: Command requires two arguments (type and path).")
+        return
+
+    command_type = parts[0].lower()
+    path = parts[1].strip()
+
     shortcuts = load_shortcuts()
-    if command in shortcuts:
-        command_to_run = shortcuts[command]
+
+    if command_type == 'open':
+        open_program(path, shortcuts)
+    elif command_type == 'folder':
+        open_folder(path, shortcuts)
     else:
-        command_to_run = command
+        log_output(f"Error: Unknown command type '{command_type}'. Supported types are 'open' and 'folder'.")
 
-    log_output(f"Executing: {command_to_run}")  # Log the command being executed
+# Open a program (handle paths)
+def open_program(path, shortcuts):
+    log_output(f"Opening program: {path}")
+    # Check if the path exists in the programs shortcuts
+    if path in shortcuts["programs"]:
+        command_to_run = shortcuts["programs"][path]
+        try:
+            result = subprocess.run([command_to_run], shell=True, capture_output=True, text=True)
+            output = result.stdout if result.stdout else result.stderr
+        except Exception as e:
+            output = f"Error: {e}"
+        log_output(f"Output:\n{output}")
+    else:
+        log_output(f"Error: Program path '{path}' not found in shortcuts.")
 
-    try:
-        if os.name == 'nt' and command_to_run.startswith('"'):
-            # For Windows, handle commands with full paths
-            result = subprocess.run(command_to_run, shell=True, capture_output=True, text=True)
-        else:
-            result = subprocess.run(command_to_run, shell=True, capture_output=True, text=True)
-        output = result.stdout if result.stdout else result.stderr
-    except Exception as e:
-        output = f"Error: {e}"
-    
-    log_output(f"> {command}\n{output}")
+# Open a folder in File Explorer (Windows)
+def open_folder(path, shortcuts):
+    log_output(f"Opening folder: {path}")
+    # Check if the path exists in the folders shortcuts
+    if path in shortcuts["folders"]:
+        folder_path = shortcuts["folders"][path]
+        try:
+            if os.name == 'nt':  # For Windows
+                os.startfile(folder_path)  # Open folder in Explorer
+            else:
+                log_output(f"Error: Folder opening is supported only on Windows for now.")
+        except Exception as e:
+            output = f"Error: {e}"
+            log_output(f"Output:\n{output}")
+    else:
+        log_output(f"Error: Folder path '{path}' not found in shortcuts.")
 
 # Display available shortcuts
 def display_shortcuts():
     shortcuts = load_shortcuts()
-    if shortcuts:
-        output = "Available shortcuts:\n" + "\n".join([f"{key}: {value}" for key, value in shortcuts.items()])
+    if shortcuts["programs"]:
+        output = "Program Shortcuts:\n" + "\n".join([f"{key}: {value}" for key, value in shortcuts["programs"].items()])
     else:
-        output = "No shortcuts available. Add some to shortcuts.json."
-    
-    log_output(f"DEBUG: Displaying shortcuts: {output}")  # Debug log
+        output = "No program shortcuts available."
+    log_output(output)
+
+    if shortcuts["folders"]:
+        output = "Folder Shortcuts:\n" + "\n".join([f"{key}: {value}" for key, value in shortcuts["folders"].items()])
+    else:
+        output = "No folder shortcuts available."
     log_output(output)
 
 # Log output in the text area
@@ -76,48 +124,44 @@ def log_output(output):
 def toggle_window_size():
     global is_expanded
     if is_expanded:
-        # Switch to compact mode (hide the text area)
         entry_frame.pack_forget()
         text_area.pack_forget()
         entry_frame.pack(pady=5, padx=5, fill=tk.X)
-        root.geometry("200x40")  # Set compact size
+        root.geometry("200x40")
     else:
-        # Switch to expanded mode (show the text area)
         entry_frame.pack(pady=5, padx=5, fill=tk.X)
         text_area.pack(pady=5, padx=5, fill=tk.BOTH, expand=True)
-        root.geometry("400x300")  # Set expanded size
+        root.geometry("400x300")
     
-    is_expanded = not is_expanded  # Toggle the flag
+    is_expanded = not is_expanded
 
+# Toggle window minimize/restore
 def toggle_window():
     if root.state() == "normal":
-        root.iconify()  # Minimize the window
+        root.iconify()
     else:
-        root.deiconify() 
-    
+        root.deiconify()
+
+# Toggle entry focus
 def toggle_entry_focus():
-    if root.focus_get() == entry:  # Check if the entry field currently has focus
-        root.focus()  # Remove focus from the entry field
+    if root.focus_get() == entry:
+        root.focus()
     else:
-        entry.focus() 
-        
-# Listen for Shift+1 key press globally
+        entry.focus()
+
+# Global hotkey listener
 def all_hotkey():
     keyboard.add_hotkey('shift+1', toggle_window_size)
     keyboard.add_hotkey('shift+2', toggle_window)
     keyboard.add_hotkey('shift+3', toggle_entry_focus)
-    
-    keyboard.wait()  # This will keep the listener running
+    keyboard.wait()
 
 # GUI Setup
 root = tk.Tk()
 root.title("Custom Terminal")
+root.geometry("+0+0")  # Set the window position to (0,0)
 
-# Set window position to top-left
-root.geometry("+0+0")  # Set the window position to (0,0) for top-left corner
-
-# Flag to track whether we are in expanded mode
-is_expanded = False
+is_expanded = False  # Flag to track window size
 
 # Input field
 entry_frame = tk.Frame(root)
@@ -135,5 +179,6 @@ text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, state=tk.DISABLED, hei
 
 # Run the global hotkey listener in a separate thread
 threading.Thread(target=all_hotkey, daemon=True).start()
+
 # Start the application
 root.mainloop()
