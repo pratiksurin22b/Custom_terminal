@@ -73,17 +73,21 @@ def execute_command():
         return
 
     command_type = parts[0].lower()
-    path = parts[1].strip()
+    rest_of_command = parts[1].strip()
+    arguments = rest_of_command.split(' ')
 
     shortcuts = load_shortcuts()
 
     if command_type == 'open':
-        open_program(path, shortcuts)
+        open_program(arguments, shortcuts)
     elif command_type == 'folder':
-        open_folder(path, shortcuts)
+        open_folder(arguments, shortcuts)
     elif command_type == 'website':
-        open_website(path, shortcuts)
-    
+        open_website(arguments, shortcuts)
+    elif command_type == 'run':
+        run_shell_command(arguments)
+    elif command_type == 'search':
+        perform_search(arguments)
 
     else:
         log_output(f"Error: Unknown command type '{command_type}'. Supported types are 'open' and 'folder'.")
@@ -154,6 +158,23 @@ def log_output(output):
     text_area.insert(tk.END, output + "\n")
     text_area.see(tk.END)
     text_area.config(state=tk.DISABLED)
+
+def run_shell_command(command):
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        log_output(result.stdout if result.stdout else result.stderr)
+    except Exception as e:
+        log_output(f"Error running command: {e}")
+
+def perform_search(arguments):
+    log_output(f"Searching with the following arguments: {arguments}")
+    # Process the search as needed
+    # For example, if it's a Google search:
+    query = " ".join(arguments)  # Join all arguments into a single query
+    search_url = f"https://www.google.com/search?q={query}"
+    webbrowser.open(search_url)
+    log_output(f"Search query sent to Google: {query}")
+#
 
 def system_info():
     info = {
