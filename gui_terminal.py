@@ -6,6 +6,8 @@ import os
 import keyboard
 import threading
 import sys
+import webbrowser
+import pygetwindow as gw
 
 # Load shortcuts from JSON files
 def load_shortcuts():
@@ -20,9 +22,20 @@ def load_shortcuts():
     except json.JSONDecodeError as e:
         log_output(f"DEBUG: JSON decode error in shortcuts.json: {e}")
         shortcuts["programs"] = {}
+        
+    try:
+        with open(r'F:\\Main_PROJECTS\\Custom_terminal\\web_shortcuts.json') as f:
+            shortcuts["websites"] = json.load(f)
+            log_output(f"DEBUG: Successfully loaded website shortcuts: {shortcuts['websites']}")
+    except FileNotFoundError:
+        log_output("DEBUG: web_shortcuts.json not found.")
+        shortcuts["websites"] = {}
+    except json.JSONDecodeError as e:
+        log_output(f"DEBUG: JSON decode error in web_shortcuts.json: {e}")
+        shortcuts["websites"] = {}
 
     try:
-        with open(r'F:\\Main_PROJECTS\\Custom_terminal\\folder_shortcuts!@@@@!!!.json') as f:
+        with open(r'F:\\Main_PROJECTS\\Custom_terminal\\folder_shortcuts.json') as f:
             shortcuts["folders"] = json.load(f)
             log_output(f"DEBUG: Successfully loaded folder shortcuts: {shortcuts['folders']}")
     except FileNotFoundError:
@@ -47,6 +60,11 @@ def execute_command():
         return
     if command.lower() == 'full':
         toggle_window_size()
+    elif command.lower() == 'sysinfo':
+        system_info()
+        return
+    elif command.lower() in ['shutdown', 'restart', 'sleep']:
+        system_control(command)
 
     # Split the command into the type and the path
     parts = command.split(' ', 1)
@@ -63,6 +81,10 @@ def execute_command():
         open_program(path, shortcuts)
     elif command_type == 'folder':
         open_folder(path, shortcuts)
+    elif command_type == 'website':
+        open_website(path, shortcuts)
+    
+
     else:
         log_output(f"Error: Unknown command type '{command_type}'. Supported types are 'open' and 'folder'.")
 
@@ -97,7 +119,20 @@ def open_folder(path, shortcuts):
             log_output(f"Output:\n{output}")
     else:
         log_output(f"Error: Folder path '{path}' not found in shortcuts.")
-
+        
+def open_website(path, shortcuts):
+    log_output(f"Opening website: {path}")
+    if path in shortcuts["websites"]:
+        website_url = shortcuts["websites"][path]
+        try:
+            webbrowser.open(website_url)  # Open the URL in the default browser
+            log_output(f"Website '{path}' opened successfully.")
+        except Exception as e:
+            log_output(f"Error opening website '{path}': {e}")
+    else:
+        log_output(f"Error: Website shortcut '{path}' not found.")
+        
+        
 # Display available shortcuts
 def display_shortcuts():
     shortcuts = load_shortcuts()
@@ -115,10 +150,35 @@ def display_shortcuts():
 
 # Log output in the text area
 def log_output(output):
-    text_area.config(state=tk.NORMAL)
+    text_area.config(state=tk.NORMAL)##
     text_area.insert(tk.END, output + "\n")
     text_area.see(tk.END)
     text_area.config(state=tk.DISABLED)
+
+def system_info():
+    info = {
+        "OS": os.name,
+        "Platform": sys.platform,
+        "Python Version": sys.version,
+    }
+    log_output("\n".join([f"{key}: {value}" for key, value in info.items()]))
+    
+def system_control(action):
+    if action == "shutdown":
+        os.system("shutdown /s /t 0" if os.name == "nt" else "sudo shutdown now")
+        log_output("Shutting down...")
+    elif action == "restart":
+        os.system("shutdown /r /t 0" if os.name == "nt" else "sudo reboot")
+        log_output("Restarting...")
+    elif action == "sleep":
+        if os.name == "nt":  # Windows
+            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+        else:  # macOS/Linux
+            os.system("systemctl suspend")
+        log_output("Entering sleep mode...")
+    else:
+        log_output("Invalid system control action.")
+
 
 # Toggle window size between compact and expanded
 def toggle_window_size():
@@ -139,21 +199,31 @@ def toggle_window_size():
 def toggle_window():
     if root.state() == "normal":
         root.iconify()
+        entry.delete(0, tk.END)#
     else:
         root.deiconify()
 
-# Toggle entry focus
-def toggle_entry_focus():
-    if root.focus_get() == entry:
+        
+def toggle_terminal_and_focus():
+    if root.state() == "normal":
+        root.iconify()
         root.focus()
+        entry.delete(0, tk.END)
+        # Minimize terminal
     else:
+        root.deiconify()  # Restore terminal
+        # Bring terminal to the foreground
+        window = gw.getWindowsWithTitle("Custom Terminal")
+        if window:
+            window[0].activate()
+        # Focus the entry widget
         entry.focus()
 
 # Global hotkey listener
 def all_hotkey():
     keyboard.add_hotkey('shift+1', toggle_window_size)
     keyboard.add_hotkey('shift+2', toggle_window)
-    keyboard.add_hotkey('shift+3', toggle_entry_focus)
+    keyboard.add_hotkey('shift+3', toggle_terminal_and_focus)
     keyboard.wait()
 
 # GUI Setup
