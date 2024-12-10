@@ -50,25 +50,34 @@ def load_shortcuts():
 
     return shortcuts
 
+command_history = []
+
+def show_history():
+    log_output("\nCommand History:\n" + "\n".join(command_history))
+
 # Execute a shortcut or command with two arguments (type and path)
 def execute_command():
     command = entry.get().strip()
+    command_history.append(command)
     if not command:
         return
-    if command.lower() == 'exit':
+    elif command.lower() == 'exit':
         root.destroy()
         return
-    if command.lower() == 'help':
+    elif command.lower() == 'help':
         display_shortcuts()
         return
-    if command.lower() == 'full':
+    elif command.lower() == 'full':
         toggle_window_size()
     elif command.lower() == 'sysinfo':
         system_info()
         return
     elif command.lower() in ['shutdown', 'restart', 'sleep']:
         system_control(command)
-
+    elif command.lower() == 'history':
+        show_history()
+        return
+    
     # Split the command into the type and the path
     parts = command.split(' ', 1)
     if len(parts) < 2:
