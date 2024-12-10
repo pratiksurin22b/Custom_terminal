@@ -8,6 +8,9 @@ import threading
 import sys
 import webbrowser
 import pygetwindow as gw
+import time
+import win32gui
+import win32con
 
 # Load shortcuts from JSON files
 def load_shortcuts():
@@ -92,51 +95,70 @@ def execute_command():
     else:
         log_output(f"Error: Unknown command type '{command_type}'. Supported types are 'open' and 'folder'.")
 
-# Open a program (handle paths)
-def open_program(path, shortcuts):
-    log_output(f"Opening program: {path}")
-    # Check if the path exists in the programs shortcuts
-    if path in shortcuts["programs"]:
-        command_to_run = shortcuts["programs"][path]
-        try:
-            result = subprocess.run([command_to_run], shell=True, capture_output=True, text=True)
-            output = result.stdout if result.stdout else result.stderr
-        except Exception as e:
-            output = f"Error: {e}"
-        log_output(f"Output:\n{output}")
+# Open a program based on the path in the shortcuts dictionary
+def open_program(arguments, shortcuts):
+    # Ensure that the arguments contain at least one element and it's a string
+    if arguments and isinstance(arguments[0], str):
+        path = arguments[0].strip()  # Extract the first argument as the path (program name)
+        log_output(f"Opening program: {path}")
+
+        # Check if the path exists in the programs shortcuts
+        if path in shortcuts["programs"]:
+            command_to_run = shortcuts["programs"][path]
+            try:
+                result = subprocess.run([command_to_run], shell=True, capture_output=True, text=True)
+                output = result.stdout if result.stdout else result.stderr
+            except Exception as e:
+                output = f"Error: {e}"
+            log_output(f"Output:\n{output}")
+        else:
+            log_output(f"Error: Program path '{path}' not found in shortcuts.")
     else:
-        log_output(f"Error: Program path '{path}' not found in shortcuts.")
+        log_output("Error: Invalid arguments for opening program.")
 
 # Open a folder in File Explorer (Windows)
-def open_folder(path, shortcuts):
-    log_output(f"Opening folder: {path}")
-    # Check if the path exists in the folders shortcuts
-    if path in shortcuts["folders"]:
-        folder_path = shortcuts["folders"][path]
-        try:
-            if os.name == 'nt':  # For Windows
-                os.startfile(folder_path)  # Open folder in Explorer
-            else:
-                log_output(f"Error: Folder opening is supported only on Windows for now.")
-        except Exception as e:
-            output = f"Error: {e}"
-            log_output(f"Output:\n{output}")
+def open_folder(arguments, shortcuts):
+    # Ensure that the arguments contain at least one element and it's a string
+    if arguments and isinstance(arguments[0], str):
+        path = arguments[0].strip()  # Extract the first argument as the folder path
+        log_output(f"Opening folder: {path}")
+
+        # Check if the path exists in the folders shortcuts
+        if path in shortcuts["folders"]:
+            folder_path = shortcuts["folders"][path]
+            try:
+                if os.name == 'nt':  # For Windows
+                    os.startfile(folder_path)  # Open folder in Explorer
+                else:
+                    log_output(f"Error: Folder opening is supported only on Windows for now.")
+            except Exception as e:
+                output = f"Error: {e}"
+                log_output(f"Output:\n{output}")
+        else:
+            log_output(f"Error: Folder path '{path}' not found in shortcuts.")
     else:
-        log_output(f"Error: Folder path '{path}' not found in shortcuts.")
-        
-def open_website(path, shortcuts):
-    log_output(f"Opening website: {path}")
-    if path in shortcuts["websites"]:
-        website_url = shortcuts["websites"][path]
-        try:
-            webbrowser.open(website_url)  # Open the URL in the default browser
-            log_output(f"Website '{path}' opened successfully.")
-        except Exception as e:
-            log_output(f"Error opening website '{path}': {e}")
+        log_output("Error: Invalid arguments for opening folder.")
+
+# Open a website based on the arguments and shortcuts
+def open_website(arguments, shortcuts):
+    # Ensure that the arguments contain at least one element and it's a string
+    if arguments and isinstance(arguments[0], str):
+        path = arguments[0].strip()  # Extract the first argument as the path (website name)
+        log_output(f"Opening website: {path}")
+
+        # Check if the path exists in the websites dictionary
+        if path in shortcuts["websites"]:
+            website_url = shortcuts["websites"][path]
+            try:
+                webbrowser.open(website_url)  # Open the URL in the default browser
+                log_output(f"Website '{path}' opened successfully.")
+            except Exception as e:
+                log_output(f"Error opening website '{path}': {e}")
+        else:
+            log_output(f"Error: Website shortcut '{path}' not found.")
     else:
-        log_output(f"Error: Website shortcut '{path}' not found.")
-        
-        
+        log_output("Error: Invalid arguments for opening website.")
+
 # Display available shortcuts
 def display_shortcuts():
     shortcuts = load_shortcuts()
@@ -174,7 +196,7 @@ def perform_search(arguments):
     search_url = f"https://www.google.com/search?q={query}"
     webbrowser.open(search_url)
     log_output(f"Search query sent to Google: {query}")
-#
+
 
 def system_info():
     info = {
@@ -228,24 +250,32 @@ def toggle_window():
 def toggle_terminal_and_focus():
     if root.state() == "normal":
         root.iconify()
-        root.focus()
         entry.delete(0, tk.END)
-        # Minimize terminal
     else:
         root.deiconify()  # Restore terminal
+        
         # Bring terminal to the foreground
-        window = gw.getWindowsWithTitle("Custom Terminal")
-        if window:
-            window[0].activate()
-        # Focus the entry widget
-        entry.focus()
-
+        try:
+            # Use different methods to ensure window focus
+            root.lift()  # Bring window to the top
+            root.focus_force()  # Force focus on the window
+            entry.focus_set()  # Set focus specifically to the entry widget
+            
+            hwnd = win32gui.GetForegroundWindow()
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            win32gui.SetForegroundWindow(hwnd)
+            
+        except Exception as e:
+            log_output(f"Error activating window: {e}")
 # Global hotkey listener
 def all_hotkey():
-    keyboard.add_hotkey('shift+1', toggle_window_size)
-    keyboard.add_hotkey('shift+2', toggle_window)
-    keyboard.add_hotkey('shift+3', toggle_terminal_and_focus)
-    keyboard.wait()
+    try:
+        keyboard.add_hotkey('alt+shift+f1', toggle_window_size)
+        keyboard.add_hotkey('alt+shift+f2', toggle_window)
+        keyboard.add_hotkey('alt+shift+f3', toggle_terminal_and_focus)
+        keyboard.wait()
+    except Exception as e:
+        log_output(f"Error in global hotkey listener: {e}")
 
 # GUI Setup
 root = tk.Tk()
@@ -273,3 +303,4 @@ threading.Thread(target=all_hotkey, daemon=True).start()
 
 # Start the application
 root.mainloop()
+
