@@ -16,8 +16,7 @@ def execute_command(command, text_area):
         'exit': lambda: None,  # Will be handled in main.py
         'help': display_shortcuts,
         'sysinfo': system_info,
-        'history': lambda: None,
-        'date': show_datetime# Will be handled in main.py
+        'history': lambda: None,  # Will be handled in main.py
     }
 
     if command.lower() in special_commands:
@@ -48,8 +47,7 @@ def execute_command(command, text_area):
         'website': open_website,
         'run': run_shell_command,
         'search': perform_search,
-        'ping' : network_ping,
-        
+        'ping' : network_ping
     }
 
     if command_type in command_handlers:
@@ -177,18 +175,7 @@ def network_ping(arguments,_,text_area):
     
     host = arguments[0]
     try:
-        result = subprocess.run(['ping', '-n', '4', host],capture_output=True, text=True)
+        result = subprocess.run(['ping', '-c', '4', host],capture_output=True, text=True)
         log_output(text_area, result.stdout)
     except Exception as e:
         log_output(text_area, f"Ping error: {e}")
-
-def show_datetime():
-    from datetime import datetime
-    
-    current_time = datetime.now()
-    formats = {
-        'full': "%Y-%m-%d %H:%M:%S",
-    }
-    return current_time.strftime(formats["full"])
-
-

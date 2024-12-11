@@ -5,7 +5,7 @@ import keyboard
 import win32gui
 import win32con
 
-from command_executor import execute_command, display_shortcuts, system_info, system_control
+from command_executor import execute_command, display_shortcuts, system_info, system_control,show_datetime
 from utilities import log_output
 
 class CustomTerminal:
@@ -61,6 +61,9 @@ class CustomTerminal:
         elif command.lower() == 'history':
             log_output(self.text_area, "\nCommand History:\n" + "\n".join(self.command_history))
             return
+        elif command.lower() == 'date':
+            log_output(self.text_area, "The date-time right now is:\t"+ show_datetime())
+            
 
         # Execute the command
         execute_command(command, self.text_area)
