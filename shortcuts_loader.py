@@ -5,14 +5,16 @@ def load_shortcuts():
     shortcuts = {
         "programs": {},
         "websites": {},
-        "folders": {}
+        "folders": {},
+        "themes" :{}
     }
     
     # Paths to your JSON files
     shortcut_files = [
         (r'F:\\Main_PROJECTS\\Custom_terminal\\shortcuts.json', "programs"),
         (r'F:\\Main_PROJECTS\\Custom_terminal\web_shortcuts.json', "websites"),
-        (r'F:\Main_PROJECTS\\Custom_terminal\\folder_shortcuts.json', "folders")
+        (r'F:\Main_PROJECTS\\Custom_terminal\\folder_shortcuts.json', "folders"),
+        (r'F:\Main_PROJECTS\\Custom_terminal\\themes.json', "themes")
     ]
     
     for file_path, key in shortcut_files:

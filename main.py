@@ -5,7 +5,7 @@ import keyboard
 import win32gui
 import win32con
 
-from command_executor import execute_command, display_shortcuts, system_info, system_control,show_datetime
+from command_executor import execute_command, display_shortcuts, system_info, system_control,show_datetime,available_themes
 from utilities import log_output
 
 class CustomTerminal:
@@ -49,6 +49,9 @@ class CustomTerminal:
         elif command.lower() == 'help':
             log_output(self.text_area, display_shortcuts())
             return
+        elif command.lower() == 'showthemes':
+            log_output(self.text_area,available_themes())
+            return
         elif command.lower() == 'full':
             self.toggle_window_size()
             return
@@ -63,10 +66,11 @@ class CustomTerminal:
             return
         elif command.lower() == 'date':
             log_output(self.text_area, "The date-time right now is:\t"+ show_datetime())
+            return
             
 
         # Execute the command
-        execute_command(command, self.text_area)
+        execute_command(command, self.text_area, self.root,self)
         
         # Clear the entry after command execution
         self.entry.delete(0, tk.END)

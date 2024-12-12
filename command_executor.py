@@ -6,7 +6,7 @@ import sys
 from shortcuts_loader import load_shortcuts
 from utilities import log_output
 
-def execute_command(command, text_area):
+def execute_command(command, text_area, root_area,self):
     command = command.strip()
     if not command:
         return
@@ -49,15 +49,15 @@ def execute_command(command, text_area):
         'run': run_shell_command,
         'search': perform_search,
         'ping' : network_ping,
-        
+        'theme': change_theme
     }
 
     if command_type in command_handlers:
-        command_handlers[command_type](arguments, shortcuts, text_area)
+        command_handlers[command_type](arguments, shortcuts, text_area,root_area,self)
     else:
         log_output(text_area, f"Error: Unknown command type '{command_type}'.")
 
-def open_program(arguments, shortcuts, text_area):
+def open_program(arguments, shortcuts, text_area, _,self):
     if arguments and isinstance(arguments[0], str):
         path = arguments[0].strip()
         log_output(text_area, f"Opening program: {path}")
@@ -75,7 +75,7 @@ def open_program(arguments, shortcuts, text_area):
     else:
         log_output(text_area, "Error: Invalid arguments for opening program.")
 
-def open_folder(arguments, shortcuts, text_area):
+def open_folder(arguments, shortcuts, text_area, _,self):
     if arguments and isinstance(arguments[0], str):
         path = arguments[0].strip()
         log_output(text_area, f"Opening folder: {path}")
@@ -94,7 +94,7 @@ def open_folder(arguments, shortcuts, text_area):
     else:
         log_output(text_area, "Error: Invalid arguments for opening folder.")
 
-def open_website(arguments, shortcuts, text_area):
+def open_website(arguments, shortcuts, text_area,_, self):
     if arguments and isinstance(arguments[0], str):
         path = arguments[0].strip()
         log_output(text_area, f"Opening website: {path}")
@@ -132,14 +132,26 @@ def display_shortcuts():
     
     return output
 
-def run_shell_command(command, _, text_area):
+def available_themes():
+    shortcuts=load_shortcuts()
+    output=""
+    
+    
+    if shortcuts["themes"]:
+        output += "Available themes:\n" + "\n".join([f"{key}: {value}" for key, value in shortcuts["themes"].items()]) + "\n\n"
+    else:
+        output += "No folder shortcuts available.\n\n"
+    
+    return output
+    
+def run_shell_command(command, _, text_area, __, self):
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         log_output(text_area, result.stdout if result.stdout else result.stderr)
     except Exception as e:
         log_output(text_area, f"Error running command: {e}")
 
-def perform_search(arguments, _, text_area):
+def perform_search(arguments, _, text_area, __, self):
     log_output(text_area, f"Searching with the following arguments: {arguments}")
     query = " ".join(arguments)
     search_url = f"https://www.google.com/search?q={query}"
@@ -170,7 +182,7 @@ def system_control(action):
     else:
         return "Invalid system control action."
 
-def network_ping(arguments,_,text_area):
+def network_ping(arguments,_,text_area, __, self):
     if not arguments:
         log_output(text_area, "Usage: ping <hostname>")
         return
@@ -190,5 +202,31 @@ def show_datetime():
         'full': "%Y-%m-%d %H:%M:%S",
     }
     return current_time.strftime(formats["full"])
+
+
+def change_theme(arguments, shortcuts, text_area, root,self):
+    if arguments and isinstance(arguments[0], str):
+        theme_name = arguments[0].strip()
+        log_output(text_area, f"Changing theme to: {theme_name}")
+
+        if theme_name in shortcuts["themes"]:
+            theme_settings = shortcuts["themes"][theme_name]
+            try:
+                root.configure(bg=theme_settings["bg"])
+                text_area.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    insertbackground=theme_settings["fg"]
+                )
+                log_output(text_area, f"Theme '{theme_name}' applied successfully.")
+            except Exception as e:
+                log_output(text_area, f"Error applying theme: {e}")
+        else:
+            log_output(text_area, f"Error: Theme '{theme_name}' not found in available themes.")
+    else:
+        log_output(text_area, "Error: Invalid arguments for changing theme.")
+
+
+
 
 

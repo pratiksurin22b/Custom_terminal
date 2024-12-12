@@ -1,0 +1,18 @@
+{
+  "light": {
+      "bg": "#ffffff",
+      "fg": "#000000"
+  },
+  "dark": {
+      "bg": "#000000",
+      "fg": "#ffffff"
+  },
+  "blue": {
+      "bg": "#0000ff",
+      "fg": "#ffffff"
+  },
+  "green": {
+      "bg": "#008000",
+      "fg": "#ffffff"
+  }
+}
