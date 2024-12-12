@@ -2,6 +2,9 @@ import os
 import subprocess
 import webbrowser
 import sys
+import json
+import tkinter as tk
+from tkinter import messagebox
 
 from shortcuts_loader import load_shortcuts
 from utilities import log_output
@@ -49,7 +52,8 @@ def execute_command(command, text_area, root_area,self):
         'run': run_shell_command,
         'search': perform_search,
         'ping' : network_ping,
-        'theme': change_theme
+        'theme': change_theme,
+        'addshortcut' : add_new_shortcut
     }
 
     if command_type in command_handlers:
@@ -57,6 +61,83 @@ def execute_command(command, text_area, root_area,self):
     else:
         log_output(text_area, f"Error: Unknown command type '{command_type}'.")
 
+def add_new_shortcut(arguments, shortcuts, text_area, root_area, self):
+    if len(arguments) < 3:
+        log_output(text_area, "Usage: addshortcut <type> <shortcut_alias> <shortcutpath/url>")
+        return
+
+    shortcut_type = arguments[0].lower()
+    shortcut_alias = arguments[1].lower()
+    shortcut_path = arguments[2]
+    
+    valid_types = ['website', 'folder', 'open']
+    
+    if shortcut_type not in valid_types:
+        log_output(text_area, f"Invalid shortcut type. Must be one of: {', '.join(valid_types)}")
+        return
+
+    def save_shortcut():
+        # Get values from entry fields
+        alias = alias_entry.get().strip()
+        path = path_entry.get().strip()
+
+        if not alias or not path:
+            messagebox.showerror("Error", "Both alias and path must be filled.")
+            log_output(text_area, f"Both path and alias are not present. ")
+            return
+
+        
+        # Determine the JSON file based on shortcut type
+        if shortcut_type == 'website':
+            json_file = 'web_shortcuts.json'
+        elif shortcut_type == 'folder':
+            json_file = 'folder_shortcuts.json'
+        elif shortcut_type == 'open':
+            json_file = 'shortcuts.json'
+        else:
+            messagebox.showerror("Error", "Invalid shortcut type.")
+            log_output(text_area, f"Invalid shortcut type: {shortcut_type}.")
+            return
+
+        # Load existing shortcuts
+        try:
+            with open(json_file, 'r') as f:
+                shortcuts = json.load(f)
+        except FileNotFoundError:
+            messagebox.showerror("Error", "The given json folder could not be located.")
+        
+        shortcuts[alias] = path
+
+        # Save the updated shortcuts
+        with open(json_file, 'w') as f:
+            json.dump(shortcuts, f, indent=4)
+
+        log_output(text_area, f"Shortcut '{alias}' added successfully for {shortcut_type}.")
+        shortcut_window.destroy()
+    
+    shortcut_window = tk.Toplevel(self.root)
+    shortcut_window.title(f"Add {shortcut_type.capitalize()} Shortcut")
+    shortcut_window.geometry("400x200")
+
+    # Alias Label and Entry
+    alias_label = tk.Label(shortcut_window, text="Shortcut Alias:")
+    alias_label.pack(pady=(10,0))
+    alias_entry = tk.Entry(shortcut_window, width=50)
+    alias_entry.insert(0, shortcut_alias)  # Pre-fill with command argument
+    alias_entry.pack(pady=5)
+
+    # Path/URL Label and Entry
+    path_label = tk.Label(shortcut_window, text=f"{'URL' if shortcut_type == 'website' else 'Path'}:")
+    path_label.pack(pady=(10,0))
+    path_entry = tk.Entry(shortcut_window, width=50)
+    path_entry.insert(0, shortcut_path)  # Pre-fill with command argument
+    path_entry.pack(pady=5)
+
+    # Save Button
+    save_button = tk.Button(shortcut_window, text="Save Shortcut", command=save_shortcut)
+    save_button.pack(pady=10)
+    
+    
 def open_program(arguments, shortcuts, text_area, _,self):
     if arguments and isinstance(arguments[0], str):
         path = arguments[0].strip()
