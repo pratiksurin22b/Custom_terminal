@@ -213,11 +213,29 @@ def change_theme(arguments, shortcuts, text_area, root,self):
             theme_settings = shortcuts["themes"][theme_name]
             try:
                 root.configure(bg=theme_settings["bg"])
+                
                 text_area.configure(
                     bg=theme_settings["bg"],
                     fg=theme_settings["fg"],
                     insertbackground=theme_settings["fg"]
                 )
+                
+                self.entry.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    insertbackground=theme_settings["fg"]
+                )
+                
+                self.entry_frame.configure       (bg=theme_settings["bg"])
+                
+                 # Apply the theme to the run button
+                self.run_button.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    activebackground=theme_settings["bg"],
+                    activeforeground=theme_settings["fg"]
+                )
+                
                 log_output(text_area, f"Theme '{theme_name}' applied successfully.")
             except Exception as e:
                 log_output(text_area, f"Error applying theme: {e}")

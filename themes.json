@@ -1,18 +1,87 @@
 {
-  "light": {
-      "bg": "#ffffff",
-      "fg": "#000000"
-  },
-  "dark": {
-      "bg": "#000000",
-      "fg": "#ffffff"
-  },
-  "blue": {
-      "bg": "#0000ff",
-      "fg": "#ffffff"
-  },
-  "green": {
-      "bg": "#008000",
-      "fg": "#ffffff"
+    "light": {
+        "bg": "#ffffff",
+        "fg": "#000000"
+    },
+    "dark": {
+        "bg": "#000000",
+        "fg": "#ffffff"
+    },
+    "blue": {
+        "bg": "#0000ff",
+        "fg": "#ffffff"
+    },
+    "green": {
+        "bg": "#008000",
+        "fg": "#ffffff"
+    },
+    "solarized_light": {
+        "bg": "#fdf6e3",
+        "fg": "#657b83"
+    },
+    "solarized_dark": {
+        "bg": "#002b36",
+        "fg": "#839496"
+    },
+    "dracula": {
+        "bg": "#282a36",
+        "fg": "#f8f8f2"
+    },
+    "monokai": {
+        "bg": "#272822",
+        "fg": "#f8f8f2"
+    },
+    "oceanic": {
+        "bg": "#1e272c",
+        "fg": "#d8dee9"
+    },
+    "sunset": {
+        "bg": "#ff4500",
+        "fg": "#ffffff"
+    },
+    "forest": {
+        "bg": "#228b22",
+        "fg": "#f0fff0"
+    },
+    "rose": {
+        "bg": "#ff007f",
+        "fg": "#ffffff"
+    },
+    "grape": {
+        "bg": "#6a0dad",
+        "fg": "#ffffff"
+    },
+    "midnight": {
+        "bg": "#2c3e50",
+        "fg": "#ecf0f1"
+    },
+    "golden": {
+        "bg": "#ffd700",
+        "fg": "#000000"
+    },
+    "coffee": {
+        "bg": "#6f4e37",
+        "fg": "#ffffff"
+    },
+    "pastel_pink": {
+        "bg": "#ffc0cb",
+        "fg": "#800080"
+    },
+    "aqua": {
+        "bg": "#00ffff",
+        "fg": "#005f5f"
+    },
+    "lava": {
+        "bg": "#cf1020",
+        "fg": "#ffdab9"
+    },
+    "teal": {
+        "bg": "#008080",
+        "fg": "#ffffff"
+    },
+    "sand": {
+        "bg": "#f4a460",
+        "fg": "#8b4513"
+    }
   }
-}
+  
