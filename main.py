@@ -6,9 +6,13 @@ import win32gui
 import win32con
 
 from command_executor import execute_command, display_shortcuts, system_info, system_control,show_datetime,available_themes
+
 from utilities import log_output
 
+from command_executor import load_last_theme, load_shortcuts
+
 class CustomTerminal:
+    
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Custom Terminal")
@@ -19,6 +23,40 @@ class CustomTerminal:
 
         self.create_widgets()
         self.setup_hotkeys()
+
+        # Load and apply the last used theme
+        shortcuts = load_shortcuts()
+        last_theme = load_last_theme(shortcuts)
+        
+        if last_theme:
+            try:
+                theme_settings = shortcuts["themes"][last_theme]
+                self.root.configure(bg=theme_settings["bg"])
+                
+                self.text_area.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    insertbackground=theme_settings["fg"]
+                )
+                
+                self.entry.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    insertbackground=theme_settings["fg"]
+                )
+                
+                self.entry_frame.configure(bg=theme_settings["bg"])
+                
+                self.run_button.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    activebackground=theme_settings["bg"],
+                    activeforeground=theme_settings["fg"]
+                )
+                
+                log_output(self.text_area, f"Loaded last used theme: {last_theme}")
+            except Exception as e:
+                log_output(self.text_area, f"Error applying last theme: {e}")
 
     def create_widgets(self):
         # Input frame
