@@ -77,15 +77,17 @@ def add_new_shortcut(arguments, shortcuts, text_area, root_area, self):
         return
 
     def save_shortcut():
-        # Get values from entry fields
         alias = alias_entry.get().strip()
         path = path_entry.get().strip()
 
         if not alias or not path:
             messagebox.showerror("Error", "Both alias and path must be filled.")
-            log_output(text_area, f"Both path and alias are not present. ")
+            log_output(text_area, f"Both path and alias are not present.")
             return
 
+        # Modify path if shortcut type is 'folder'
+        if shortcut_type == 'folder':
+            path = path.replace("\\", "\\\\")
         
         # Determine the JSON file based on shortcut type
         if shortcut_type == 'website':
@@ -104,8 +106,8 @@ def add_new_shortcut(arguments, shortcuts, text_area, root_area, self):
             with open(json_file, 'r') as f:
                 shortcuts = json.load(f)
         except FileNotFoundError:
-            messagebox.showerror("Error", "The given json folder could not be located.")
-        
+            shortcuts = {}
+
         shortcuts[alias] = path
 
         # Save the updated shortcuts
@@ -115,20 +117,20 @@ def add_new_shortcut(arguments, shortcuts, text_area, root_area, self):
         log_output(text_area, f"Shortcut '{alias}' added successfully for {shortcut_type}.")
         shortcut_window.destroy()
     
-    shortcut_window = tk.Toplevel(self.root)
+    shortcut_window = tk.Toplevel(root_area)
     shortcut_window.title(f"Add {shortcut_type.capitalize()} Shortcut")
     shortcut_window.geometry("400x200")
 
     # Alias Label and Entry
     alias_label = tk.Label(shortcut_window, text="Shortcut Alias:")
-    alias_label.pack(pady=(10,0))
+    alias_label.pack(pady=(10, 0))
     alias_entry = tk.Entry(shortcut_window, width=50)
     alias_entry.insert(0, shortcut_alias)  # Pre-fill with command argument
     alias_entry.pack(pady=5)
 
     # Path/URL Label and Entry
     path_label = tk.Label(shortcut_window, text=f"{'URL' if shortcut_type == 'website' else 'Path'}:")
-    path_label.pack(pady=(10,0))
+    path_label.pack(pady=(10, 0))
     path_entry = tk.Entry(shortcut_window, width=50)
     path_entry.insert(0, shortcut_path)  # Pre-fill with command argument
     path_entry.pack(pady=5)
@@ -136,6 +138,7 @@ def add_new_shortcut(arguments, shortcuts, text_area, root_area, self):
     # Save Button
     save_button = tk.Button(shortcut_window, text="Save Shortcut", command=save_shortcut)
     save_button.pack(pady=10)
+
     
     
 def open_program(arguments, shortcuts, text_area, _,self):
