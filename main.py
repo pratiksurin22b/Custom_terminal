@@ -11,6 +11,8 @@ from utilities import log_output
 
 from command_executor import load_last_theme, load_shortcuts
 
+from network_diagnostics import execute_network_command
+
 class CustomTerminal:
     
     def __init__(self):
@@ -104,6 +106,9 @@ class CustomTerminal:
             return
         elif command.lower() == 'date':
             log_output(self.text_area, "The date-time right now is:\t"+ show_datetime())
+            return
+        elif command.lower() == 'network-info':
+            execute_network_command(command,self.text_area)
             return
             
 

@@ -6,8 +6,10 @@ import json
 import tkinter as tk
 from tkinter import messagebox
 
+from network_diagnostics import execute_network_command
 from shortcuts_loader import load_shortcuts
 from utilities import log_output
+from weather_handler import get_weather
 
 def execute_command(command, text_area, root_area,self):
     command = command.strip()
@@ -22,13 +24,17 @@ def execute_command(command, text_area, root_area,self):
         'history': lambda: None,
         'date': show_datetime# Will be handled in main.py
     }
+    
+    network_commands = ['traceroute', 'portscan']
+    
+    # System control commands
+    system_commands = ['shutdown', 'restart', 'sleep']
 
     if command.lower() in special_commands:
         special_commands[command.lower()]()
         return
 
-    # System control commands
-    system_commands = ['shutdown', 'restart', 'sleep']
+    
     if command.lower() in system_commands:
         system_control(command.lower())
         return
@@ -42,6 +48,11 @@ def execute_command(command, text_area, root_area,self):
     command_type = parts[0].lower()
     rest_of_command = parts[1].strip()
     arguments = rest_of_command.split(' ')
+    
+    if command_type.lower() in network_commands:
+        execute_network_command(command, text_area)
+        return
+    
 
     shortcuts = load_shortcuts()
 
@@ -53,7 +64,8 @@ def execute_command(command, text_area, root_area,self):
         'search': perform_search,
         'ping' : network_ping,
         'theme': change_theme,
-        'addshortcut' : add_new_shortcut
+        'addshortcut' : add_new_shortcut,
+        'weather' : get_weather
     }
 
     if command_type in command_handlers:
@@ -358,3 +370,4 @@ def change_theme(arguments, shortcuts, text_area, root, self):
         log_output(text_area, "Error: Invalid arguments for changing theme.")
 
 
+    
