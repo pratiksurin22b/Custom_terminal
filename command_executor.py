@@ -10,6 +10,7 @@ from network_diagnostics import execute_network_command
 from shortcuts_loader import load_shortcuts
 from utilities import log_output
 from weather_handler import get_weather
+from spotify_handler import handle_spotify
 
 def execute_command(command, text_area, root_area,self):
     command = command.strip()
@@ -65,7 +66,8 @@ def execute_command(command, text_area, root_area,self):
         'ping' : network_ping,
         'theme': change_theme,
         'addshortcut' : add_new_shortcut,
-        'weather' : get_weather
+        'weather' : get_weather,
+        'spotify': handle_spotify 
     }
 
     if command_type in command_handlers:
