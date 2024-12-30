@@ -11,6 +11,7 @@ from shortcuts_loader import load_shortcuts
 from utilities import log_output
 from weather_handler import get_weather
 from spotify_handler import handle_spotify
+from news_handler import handle_news_command
 
 def execute_command(command, text_area, root_area,self):
     command = command.strip()
@@ -67,7 +68,8 @@ def execute_command(command, text_area, root_area,self):
         'theme': change_theme,
         'addshortcut' : add_new_shortcut,
         'weather' : get_weather,
-        'spotify': handle_spotify 
+        'spotify': handle_spotify,
+        'news': lambda args, _, text_area, __, self: handle_news_command(args, text_area)
     }
 
     if command_type in command_handlers:

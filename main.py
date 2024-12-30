@@ -9,6 +9,7 @@ from command_executor import execute_command, display_shortcuts, system_info, sy
 from utilities import log_output
 from command_executor import load_last_theme, load_shortcuts
 from network_diagnostics import execute_network_command
+from news_handler import handle_news_command 
 
 class CustomTerminal:
     
@@ -107,6 +108,15 @@ class CustomTerminal:
         elif command.lower() == 'network-info':
             execute_network_command(command,self.text_area)
             return
+        
+        elif command.lower().startswith('news'):
+            # Split the command into parts for the news handler
+            command_parts = command.split()
+            # Pass everything after 'news' as arguments
+            args = command_parts[1:] if len(command_parts) > 1 else []
+            handle_news_command(args, self.text_area)
+            return
+            
             
 
         # Execute the command
