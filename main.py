@@ -77,9 +77,11 @@ class CustomTerminal:
                 log_output(self.text_area, f"Loaded last used theme: {last_theme}")
             except Exception as e:
                 log_output(self.text_area, f"Error applying last theme: {e}")
-        def load_command_tree(self):
+                
+    def load_command_tree(self):
             """Loads the command tree from a JSON file."""
-            file_path = os.path.join(os.path.dirname(__file__), 'command_tree.json')
+            
+            file_path = 'F:\\Main_PROJECTS\\Custom_terminal\\command_tree.json'
             try:
                 with open(file_path, 'r') as file:
                     return json.load(file)
