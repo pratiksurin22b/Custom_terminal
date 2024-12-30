@@ -337,23 +337,41 @@ def change_theme(arguments, shortcuts, text_area, root, self):
         if theme_name in shortcuts["themes"]:
             theme_settings = shortcuts["themes"][theme_name]
             try:
+                # Configure root window
                 root.configure(bg=theme_settings["bg"])
                 
+                # Configure main text area
                 text_area.configure(
                     bg=theme_settings["bg"],
                     fg=theme_settings["fg"],
                     insertbackground=theme_settings["fg"]
                 )
                 
+                # Configure entry and frame
                 self.entry.configure(
                     bg=theme_settings["bg"],
                     fg=theme_settings["fg"],
                     insertbackground=theme_settings["fg"]
                 )
-                
                 self.entry_frame.configure(bg=theme_settings["bg"])
                 
-                # Apply the theme to the run button
+                # Configure suggestion frame and components
+                self.suggestion_frame.configure(bg=theme_settings["bg"])
+                self.suggestion_list.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"],
+                    selectbackground=theme_settings["fg"],
+                    selectforeground=theme_settings["bg"]
+                )
+                self.preview_label.configure(
+                    bg=theme_settings["bg"],
+                    fg=theme_settings["fg"]
+                )
+                
+                # Configure input container
+                self.input_container.configure(bg=theme_settings["bg"])
+                
+                # Configure run button
                 self.run_button.configure(
                     bg=theme_settings["bg"],
                     fg=theme_settings["fg"],
