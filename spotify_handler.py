@@ -128,8 +128,24 @@ class SpotifyController:
             if not current.get('item'):
                 log_output(text_area, "No track is currently playing. Please start playing a track.")
                 return None
-                
+            
+            track = current['item']
+            track_name = track['name']
+            track_uri = track['uri']
+            track_artists = ", ".join([artist['name'] for artist in track['artists']])  # List of artists
+            track_album = track['album']['name']
+            track_duration = track['duration_ms'] / 1000  # Duration in seconds
+            
+            # Log the current track details
+            log_output(text_area, f"\nCurrently playing track: '{track_name}'")
+            log_output(text_area, f"Artist(s): {track_artists}")
+            log_output(text_area, f"Album: {track_album}")
+            log_output(text_area, f"Track URI: {track_uri}")
+            log_output(text_area, f"Duration: {int(track_duration)} seconds")
+            
             return current
+        
+            
         except Exception as e:
             log_output(text_area, f"Error getting current playback state: {str(e)}")
             return None
