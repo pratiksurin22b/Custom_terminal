@@ -3,6 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import json
 from datetime import datetime
 import os
+from difflib import get_close_matches
 
 from utilities import log_output
 
@@ -114,26 +115,25 @@ class SpotifyController:
             log_output(text_area, f"Error: {e}")
 
     def get_current_track(self, text_area):
-        """Get information about current track"""
+        """Helper method to get current track with retry and better error handling"""
         try:
             current = self.sp.current_playback()
-            if current and current['item']:
-                track = current['item']
-                artists = ", ".join([artist['name'] for artist in track['artists']])
-                is_playing = current['is_playing']
-                shuffle_state = current['shuffle_state']
+            
+            # Check if there's no active device
+            if current is None:
+                log_output(text_area, "No active Spotify device found. Please start Spotify on any device.")
+                return None
                 
-                status = f"""
-Currently {'Playing' if is_playing else 'Paused'}: {track['name']}
-Artist(s): {artists}
-Album: {track['album']['name']}
-Shuffle: {'On' if shuffle_state else 'Off'}
-"""
-                log_output(text_area, status)
-            else:
-                log_output(text_area, "No track currently playing")
+            # Check if there's no active track
+            if not current.get('item'):
+                log_output(text_area, "No track is currently playing. Please start playing a track.")
+                return None
+                
+            return current
         except Exception as e:
-            log_output(text_area, f"Error: {e}")
+            log_output(text_area, f"Error getting current playback state: {str(e)}")
+            return None
+
 
     def set_volume(self, volume_percent, text_area):
         """Set volume (0-100)"""
@@ -158,6 +158,32 @@ Shuffle: {'On' if shuffle_state else 'Off'}
                 log_output(text_area, f"{i}. {playlist['name']} ({track_count} tracks)")
         except Exception as e:
             log_output(text_area, f"Error listing playlists: {e}")
+        
+    def get_playlist_id_by_name(self, playlist_name, text_area):
+        """Get the playlist ID by name."""
+        try:
+            playlists = self.sp.current_user_playlists()
+            playlist_name_lower = playlist_name.lower()
+            playlist_names = [p['name'].lower() for p in playlists['items']]
+            
+            # Find the closest match
+            match = get_close_matches(playlist_name_lower, playlist_names, n=1, cutoff=0.8)
+            if not match:
+                log_output(text_area, "The playlist does not match any of the available playlists")
+                return None
+            
+            # Find the matching playlist object
+            playlist = next((p for p in playlists['items'] if p['name'].lower() == match[0]), None)
+            if not playlist:
+                log_output(text_area, "The playlist does not match any of the available playlists")
+                return None
+            
+            log_output(text_area, f"The playlist name is {playlist['name']}")
+            return playlist['id']
+        except Exception as e:
+            log_output(text_area, f"Error while retrieving playlist ID: {str(e)}")
+            return None
+
 
     def play_playlist(self, playlist_name, text_area):
         """Play a specific playlist"""
@@ -182,6 +208,41 @@ Shuffle: {'On' if shuffle_state else 'Off'}
         except Exception as e:
             log_output(text_area, f"Error creating playlist: {e}")
 
+    def add_current_playing_to_playlist(self, playlist_name, text_area):
+        """Adding the currently playing track into a playlist with enhanced error handling."""
+        try:
+            # Log the input parameters for better traceability
+            log_output(text_area, f"Attempting to add current playing track to playlist: {playlist_name}")
+            
+            # Get playlist ID by name
+            playlist_id = self.get_playlist_id_by_name(playlist_name, text_area)
+            if not playlist_id:
+                log_output(text_area, f"Playlist '{playlist_name}' not found.")
+                return
+            
+            # Get the currently playing track with enhanced error handling
+            current = self.get_current_track(text_area)
+            if not current:
+                return
+                
+            track = current['item']
+            track_uri = track['uri']
+            track_name = track['name']
+            
+            # Log track details
+            log_output(text_area, f"Currently playing track: {track_name} (URI: {track_uri})")
+            
+            # Add track to the playlist
+            self.sp.playlist_add_items(playlist_id, [track_uri], position=None)
+            
+            # Log success
+            log_output(text_area, f"Successfully added '{track_name}' to the playlist '{playlist_name}'.")
+        
+        except Exception as e:
+            # Log detailed error information
+            log_output(text_area, f"Error occurred while adding track to playlist '{playlist_name}': {str(e)}")
+
+        
     def get_recommendations(self, text_area):
         """Get song recommendations based on recent plays"""
         try:
@@ -242,7 +303,7 @@ Shuffle: {'On' if shuffle_state else 'Off'}
             if not current or not current['item']:
                 log_output(text_area, "No track currently playing")
                 return
-                
+    
             track = current['item']
             features = self.sp.audio_features(track['id'])[0]
             
@@ -325,6 +386,9 @@ spotify info - Get detailed track information
             return
         if arguments[1] == "play":
             handle_spotify.controller.play_playlist(" ".join(arguments[2:]), text_area)
+        elif arguments[1]== "add":
+            handle_spotify.controller.add_current_playing_to_playlist(" ".join(arguments[2:]), text_area)
+            
         elif arguments[1] == "create":
             handle_spotify.controller.create_playlist(" ".join(arguments[2:]), text_area)
     
