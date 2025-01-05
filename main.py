@@ -106,7 +106,7 @@ class CustomTerminal:
         self.entry.bind('<Return>', self.on_execute_command)
         self.entry.bind('<KeyRelease>', self.on_entry_change)
         self.entry.bind('<Down>', self.focus_suggestion_list)
-        self.entry.bind('<Tab>', self.handle_tab)
+        
         self.entry.bind('<Escape>', self.hide_suggestions)
         self.entry.bind('<space>', self.handle_space)
         # Create suggestion listbox with command preview
@@ -118,11 +118,14 @@ class CustomTerminal:
             selectmode=tk.SINGLE,
             activestyle='dotbox'
         )
+        
         self.suggestion_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.suggestion_list.bind('<Return>', self.use_suggestion)
+        self.suggestion_list.bind('<Tab>', self.use_suggestion)
         self.suggestion_list.bind('<Escape>', self.hide_suggestions)
         self.suggestion_list.bind('<Double-Button-1>', self.use_suggestion)
         self.suggestion_list.bind('<<ListboxSelect>>', self.show_command_preview)
+        
 
         self.suggestion_list.bind('<Up>', self.navigate_suggestions)
         self.suggestion_list.bind('<Down>', self.navigate_suggestions)
@@ -235,7 +238,13 @@ class CustomTerminal:
         self.preview_label.config(text=preview)
 
     def handle_tab(self, event=None):
-        """Handle tab completion"""
+        self.root.lift()
+        self.root.focus_force()
+        self.entry.focus_set()
+        return 
+    
+    #handle handling for suggestion
+    """def handle_tab(self, event=None):
         if self.suggestion_visible and self.suggestion_list.size() > 0:
             # If only one suggestion, use it
             if self.suggestion_list.size() == 1:
@@ -248,7 +257,7 @@ class CustomTerminal:
             # If one already selected, use it
             else:
                 self.use_suggestion(None)
-        return 'break'  # Prevent default tab behavior
+        return 'break' """ # Prevent default tab behavior
 
     def navigate_suggestions(self, event):
         """Handle up/down navigation in suggestion list"""
@@ -296,11 +305,21 @@ class CustomTerminal:
             if parts:
                 # Replace the last part with the selected suggestion
                 new_text = ' '.join(parts[:-1] + [selected])
+                
+                
+                
             else:
                 new_text = selected
-                
+            
+            
             self.entry.delete(0, tk.END)
             self.entry.insert(0, new_text)
+            
+            # Set focus and place the cursor at the end of the new text    
+            self.entry.focus_set()
+              # Set the cursor to the end of the text
+            
+           
             
             # Add space if there are subcommands available
             current_dict = self.command_tree
@@ -313,6 +332,9 @@ class CustomTerminal:
             
             self.hide_suggestions()
             self.entry.focus_set()
+            self.entry.icursor(tk.END) 
+            
+            return "break"
             
     def on_execute_command(self, event=None):
         command = self.entry.get().strip()
