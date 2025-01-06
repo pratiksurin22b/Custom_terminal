@@ -24,5 +24,6 @@
     "twitter": "https://twitter.com",
     "udemy": "https://www.udemy.com",
     "wikipedia": "https://www.wikipedia.org",
-    "youtube": "https://www.youtube.com"
+    "youtube": "https://www.youtube.com",
+    "cloud_project":"https://console.cloud.google.com/apis/library/gmail.googleapis.com?project=my-custom-terminal" 
 }
