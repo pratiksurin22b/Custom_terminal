@@ -378,6 +378,8 @@ class CustomTerminal:
             args = command_parts[1:] if len(command_parts) > 1 else []
             handle_news_command(args, self.text_area)
             return
+
+        
             
             
 

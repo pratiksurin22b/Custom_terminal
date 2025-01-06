@@ -12,6 +12,7 @@ from utilities import log_output
 from weather_handler import get_weather
 from spotify_handler import handle_spotify
 from news_handler import handle_news_command
+import gmail_handler
 
 def execute_command(command, text_area, root_area,self):
     command = command.strip()
