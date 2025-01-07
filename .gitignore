@@ -1,2 +1,5 @@
 
 .codegpt
+credentials.json
+token.json
+token.pickle
