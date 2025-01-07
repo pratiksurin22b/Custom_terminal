@@ -8,7 +8,8 @@ import json
 
 from command_executor import execute_command, display_shortcuts, system_info, system_control,show_datetime,available_themes
 from utilities import log_output
-from command_executor import load_last_theme, load_shortcuts
+from command_executor import load_shortcuts
+from themes_handler import load_last_theme
 from network_diagnostics import execute_network_command
 from news_handler import handle_news_command 
 

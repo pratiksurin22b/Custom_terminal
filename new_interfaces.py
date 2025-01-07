@@ -1,5 +1,5 @@
 import tkinter as tk
-from command_executor import load_last_theme
+from themes_handler import load_last_theme
 from shortcuts_loader import load_shortcuts
 
 def send_email_interface():
@@ -10,3 +10,5 @@ def send_email_interface():
   shortcuts=load_shortcuts()
   last_theme = load_last_theme(shortcuts)
   
+  if last_theme:
+    return
