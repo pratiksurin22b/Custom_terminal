@@ -15,6 +15,9 @@ from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from mimetypes import guess_type
 
+
+from new_interfaces import send_email_interface
+
 class GmailHandler:
     def __init__(self):
         self.scopes = ['https://mail.google.com/']
@@ -112,6 +115,9 @@ class GmailHandler:
 def gmail_command_executor(arguments, shortcuts, text_area,root_area,self):
     
       controller=GmailHandler()
+      
+      if(arguments[0]=="send"):
+          send_email_interface()
         
       
         
