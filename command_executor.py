@@ -12,7 +12,7 @@ from utilities import log_output
 from weather_handler import get_weather
 from spotify_handler import handle_spotify
 from news_handler import handle_news_command
-import gmail_handler
+from gmail_handler import gmail_command_executor
 
 def execute_command(command, text_area, root_area,self):
     command = command.strip()
@@ -70,7 +70,8 @@ def execute_command(command, text_area, root_area,self):
         'addshortcut' : add_new_shortcut,
         'weather' : get_weather,
         'spotify': handle_spotify,
-        'news': lambda args, _, text_area, __, self: handle_news_command(args, text_area)
+        'news': lambda args, _, text_area, __, self: handle_news_command(args, text_area),
+        'gmail': gmail_command_executor
     }
 
     if command_type in command_handlers:
