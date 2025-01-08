@@ -3,6 +3,7 @@ import tkinter as tk
 from themes_handler import load_last_theme
 from shortcuts_loader import load_shortcuts
 from utilities import browse_file_tkinter
+import gmail_handler
 
 def send_email_interface():
     # Create the Tkinter window
@@ -34,13 +35,15 @@ def send_email_interface():
     attachment_label = tk.Label(root, text="Attachment:", anchor="w", font=("Helvetica", 12), bg="#f4f4f9")
     attachment_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
 
-    attachment_path = ""
-    attachment_text=tk.Entry(root,width=40,font=("Helvetica", 12))
-    attachment_text.grid(column=1,row=4)
+    attachment_path =[]
+    
+    #Listbox to show attachments paths
+    attachment_listbox = tk.Listbox(root, height=5, width=40, font=("Helvetica", 12))
+    attachment_listbox.grid(row=4, column=1, padx=20, pady=10)
     # Button to choose file
     
     #lambda used to pass additional parameters, as the command parameter expects function without brackets
-    attachment_button = tk.Button(root, text="Choose File", font=("Helvetica", 12), command=lambda: browse_file_tkinter(attachment_text), relief="raised", bg="#4CAF50", fg="white")
+    attachment_button = tk.Button(root, text="Choose File", font=("Helvetica", 12), command=lambda: browse_file_tkinter(attachment_path,attachment_listbox), relief="raised", bg="#4CAF50", fg="white")
     attachment_button.grid(row=5, column=1, padx=20, pady=10)
 
     # Send Email button
@@ -53,3 +56,4 @@ def send_email_interface():
     
 
 send_email_interface()
+print()
